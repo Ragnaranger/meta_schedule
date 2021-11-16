@@ -1,6 +1,8 @@
 import numpy as np
 import pyswarms as ps
+from pyswarms.utils.plotters import plot_cost_history
 import time
+import matplotlib.pyplot as plt
 
 class Teacher:
     def __init__(self, name:str, diciplines:set, array_of_restrictions:np.ndarray):
@@ -175,19 +177,22 @@ def example():
 
     # n_particles precisa ser múltiplo de n_threads
     n_particles = 40
-    n_threads = 8
+    n_threads = 1
     s.compile(n_particles, n_threads)
 
 
-    options = {'c1': 100000.0, 'c2': 0.3, 'w':0.9, 'k':2, 'p':1}
+    options = {'c1': 100000000.0, 'c2': 0.6, 'w':0.9, 'k':4, 'p':1}
 
     start = time.time()
     optmizer = ps.discrete.BinaryPSO(n_particles, s.dimensions, options=options)
-    cost, pos = optmizer.optimize(s.evaluate, iters=5000, n_processes=n_threads)
+    cost, pos = optmizer.optimize(s.evaluate, iters=10000, n_processes=n_threads)
     # print('Cost: ', cost,'Pos: ', pos)
     # print(pos.reshape(s.shape))
     stop = time.time()
     print('Duration: ', stop-start)
+
+    plot_cost_history(optmizer.cost_history)
+    plt.show()
 
 
 
