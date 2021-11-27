@@ -1,8 +1,10 @@
 import numpy as np
+from openpyxl import Workbook
 import pyswarms as ps
 from pyswarms.utils.plotters import plot_cost_history
 import time
 import matplotlib.pyplot as plt
+import openpyxl
 
 class Teacher:
     def __init__(self, name:str, diciplines:set, array_of_restrictions:np.ndarray):
@@ -41,6 +43,32 @@ class Schedule:
         # Implementar turmas
         self.list_of_groups = []
 
+    @classmethod
+    def from_xlsx(cls, filename):
+        x_file = openpyxl.load_workbook(filename)
+        sheet = x_file.active
+        n_dias = int(sheet['A2'].value)
+        n_horas = int(sheet['B2'].value)
+
+        s = cls(n_dias, n_horas)
+
+        # Para cada professor na lista de professores, pegar o nome e schedule dele
+        for row in sheet.iter_rows(min_row=4):
+            prof_name = row[0].value
+            prof_schedule = [int(cell.value) for cell in row[1:]]
+            s.add_teacher(Teacher(prof_name, set(), np.array(prof_schedule)))
+
+
+        # Para cada grupo na lista de grupos, pegar a quantidade de aulas que cada professor deve dar
+        sheet = x_file[x_file.sheetnames[1]]
+        names = sheet['A']
+        for col in sheet.iter_cols(min_col=2):
+            g_name = col[1].value
+            disciplines = {k.value:v.value for k, v in zip(names[2:], col[2:])}
+            s.add_group(Group(g_name, disciplines))
+
+        return s
+
 
     # Compila o schedule para prepará-lo para otimização
     # Aqui, algumas variáveis são preparadas para acelerar o processo de avaliação de horários
@@ -48,12 +76,12 @@ class Schedule:
     #  de uma vez
     def compile(self, n_particles, n_threads=1):
         # Quantidade de dimensões necessárias para o PSO
-        self.dimensions = len(self.list_of_groups) * len(self.list_of_teachers) * self.n_days_in_week * self.n_classes_per_day
-        self.shape = [len(self.list_of_teachers), self.n_days_in_week * self.n_classes_per_day, len(self.list_of_groups)]
+        self.dimensions = int(len(self.list_of_groups) * len(self.list_of_teachers) * self.n_days_in_week * self.n_classes_per_day)
+        self.shape = [len(self.list_of_teachers), int(self.n_days_in_week * self.n_classes_per_day), len(self.list_of_groups)]
         self.n_particles = n_particles
 
         # Esse shape inclui a quantidade de partículas
-        self.shape_evaluate = [n_particles//n_threads, len(self.list_of_teachers), self.n_days_in_week * self.n_classes_per_day, len(self.list_of_groups)]
+        self.shape_evaluate = [n_particles//n_threads, len(self.list_of_teachers), int(self.n_days_in_week * self.n_classes_per_day), len(self.list_of_groups)]
 
 
         # Criando uma matriz com as restrições de cada professor
@@ -140,7 +168,39 @@ class Schedule:
         points += np.count_nonzero(np.sum(x, axis=(1)) > 1, axis=(1, 2)) * COEF_GROUP_OVERLAP_TIME
         return points
 
-    def codify():
+    def sollution_to_xlsx(self, sollution:np.ndarray):
+
+        sollution = self.decodify(sollution)
+
+        n_profs = self.shape[0]
+        n_turmas = self.shape[2]
+
+        wb = Workbook()
+        wb.remove(wb.active)
+
+        # Para cada dia
+        for day_nbr in range(self.n_days_in_week):
+            sheet = wb.create_sheet('day '+ str(day_nbr))
+
+            # Para cada turma
+            for turma_nbr in range(n_turmas):
+                name = self.list_of_groups[turma_nbr].name
+                _ = sheet.cell(1, turma_nbr+1, name)
+                # Para cada horário
+                for class_nbr in range(self.n_classes_per_day):
+                    index = day_nbr * self.n_classes_per_day + class_nbr
+
+                    prof_id = np.argmax(sollution[:, index, turma_nbr])
+                    
+                    if sollution[prof_id, index, turma_nbr] == 1:
+                        value = self.list_of_teachers[prof_id].name
+                    else:
+                        value = '-'
+
+                    _ = sheet.cell(class_nbr+2, turma_nbr+1, value)
+        
+
+        wb.save('saida.xlsx')
         pass
 
     
