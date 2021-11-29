@@ -6,14 +6,14 @@ from tqdm import tqdm
 
 from numpy.core.numeric import Inf
 
-def random_optimizer(function, n_particles, iterations, n_dimensions):
+def random_optimizer(function, n_particles, iterations, n_dimensions, proportion_one=0.5):
 
     global_min = float(Inf)
     
     min_history = []
 
     for _ in tqdm(range(iterations)):
-        particles = np.random.choice([0, 1], (n_particles, n_dimensions))
+        particles = np.random.choice([0, 1], (n_particles, n_dimensions), p=[1-proportion_one, proportion_one])
         result = function(particles)
 
         pos_local_min = np.argmin(result)
@@ -27,19 +27,17 @@ def random_optimizer(function, n_particles, iterations, n_dimensions):
 
     return global_min, best_sollution, min_history
 
-
 def plot_cost_hist(cost_hist):
     fig, ax = plt.subplots()
     ax.plot(range(len(cost_hist)), cost_hist)
 
     ax.set(xlabel='iterations', ylabel='cost',
        title='Cost History')
-    plt.show()
+    # plt.show()
     
 
 
-
-def example():
+def example(iterations=50000, proportion_one=0.5, auto_proportion=False):
     s = Schedule(5, 4)
     s.add_teacher(Teacher('Daniel',   set(), np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])))
     s.add_teacher(Teacher('Henrique', set(), np.array([0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1])))
@@ -61,8 +59,22 @@ def example():
     n_threads = 1
     s.compile(n_particles, n_threads)
 
+
+    if auto_proportion:
+        n_classes = 0
+        for group in s.list_of_groups:
+            group:Group
+            n_classes += sum(group.diciplines.values())
+        
+        total = s.shape[0] * s.shape[1] * s.shape[2]
+
+        proportion_one = n_classes/total
+        print('Auto-proportion: ', proportion_one)
+
+
+
     start = time.time()
-    cost, pos, cost_hist = random_optimizer(s.evaluate, n_particles, 50000, s.dimensions)
+    cost, pos, cost_hist = random_optimizer(s.evaluate, n_particles, iterations, s.dimensions, proportion_one)
     stop = time.time()
     print('Duration: ', stop-start)
 
@@ -75,3 +87,11 @@ def example():
 if __name__ == '__main__':
 
     example()
+
+    example(proportion_one=0.1)
+
+    example(proportion_one=0.05)
+
+    example(auto_proportion=True)
+
+    plt.show()
