@@ -44,7 +44,7 @@ class Schedule:
         self.list_of_groups = []
 
     @classmethod
-    def from_xlsx(cls, filename):
+    def from_xlsx(cls, filename:str):
         x_file = openpyxl.load_workbook(filename)
         sheet = x_file.active
         n_dias = int(sheet['A2'].value)

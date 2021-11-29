@@ -120,9 +120,8 @@ def example2():
     plot_cost_history(optmizer.cost_history)
     plt.show()
 
-
-def excel_example():
-  s = Schedule.from_xlsx('excel_example.xlsx')
+def excel_example(filename:str='excel_example.xlsx'):
+  s = Schedule.from_xlsx(filename)
   
   n_particles = 40
   n_threads = 1
@@ -139,6 +138,7 @@ def excel_example():
   print('Sollution:')
   print(pos)
 
+  s.sollution_to_xlsx(np.array(pos))
   plot_cost_history(optmizer.cost_history)
   plt.show()
 
@@ -150,6 +150,7 @@ def decode_example():
   n_threads = 1
   s.compile(n_particles, n_threads)
 
+  # Pulando a parte de cálculo de solução
   sollution = \
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
  0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -171,5 +172,4 @@ def decode_example():
 
 if __name__ == '__main__':
 
-  decode_example()
-  # excel_example()
+  excel_example()
