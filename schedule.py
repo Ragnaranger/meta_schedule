@@ -119,29 +119,43 @@ class Schedule:
 
 
     def evaluate(self, x:np.ndarray):
+        # Coeficiente de coeficientes que envolvem solução válida
+        # Ele multiplica apenas valores que influenciam validade, não qualidade
+        META_COEF_VALID_ANS = 100
+
         # Coeficiente de horário disponível de professor
-        COEF_PROF_HR = 7
+        COEF_PROF_HR = 7 * META_COEF_VALID_ANS
 
         # Coeficiente de aulas que grupo deixou de receber
-        COEF_GROUP_CLASS_MISSING = 5
+        COEF_GROUP_CLASS_MISSING = 5 * META_COEF_VALID_ANS
 
         # Coeficiente de aulas que grupo recebeu a mais
-        COEF_GROUP_CLASS_EXTRA = 3
+        COEF_GROUP_CLASS_EXTRA = 3 * META_COEF_VALID_ANS
 
         # Coeficiente professor dando mais de 1 aula por horário
-        COEF_PROF_OVERLAP_TIME = 10
+        COEF_PROF_OVERLAP_TIME = 10 * META_COEF_VALID_ANS
 
         # Coeficiente grupo recebendo mais de 1 aula por horário
-        COEF_GROUP_OVERLAP_TIME = 10
+        COEF_GROUP_OVERLAP_TIME = 10 * META_COEF_VALID_ANS
         
 
-        x = x.reshape(self.shape_evaluate)
+        ##### Coeficientes de otimização de solução ####
+        # Esses coeficientes não influenciam na validade da solução, apenas
+        # em sua qualidade:
+
+        # Coeficiente professor tendo dias livres
+        COEF_PROF_FREE_DAY = -1
+
+        # Coeficiente grupo tendo dias livres
+        COEF_GROUP_FREE_DAY = -1
+
+        x = x.reshape(self.shape_evaluate) # particles:professor:dia/horario:turma
         n_particles = self.shape_evaluate[0]
         points = np.zeros(self.shape_evaluate[0])
 
-
+        #particle:prof:hr:turma
         # Verificar se prof estão em horários disponíveis
-        prof_hora = np.sum(x, axis=3) # axis=grupo
+        prof_hora = np.sum(x, axis=3) # axis=grupo      # Atenção, não modificar prof_hora em lugar nenhum do código
         points += np.sum((prof_hora * self.all_restrictions).reshape(n_particles, -1), axis=1 ) * COEF_PROF_HR
                 
 
@@ -166,6 +180,22 @@ class Schedule:
 
         # Verificar se grupos tem horários conflitantes
         points += np.count_nonzero(np.sum(x, axis=(1)) > 1, axis=(1, 2)) * COEF_GROUP_OVERLAP_TIME
+
+
+
+        # Verificar professores com dias livres
+        # Dá 1 ponto para cada dia livre de cada professor
+        # Trocar shape para particula:prof:dia:hor
+        prof_dia_hora = prof_hora.reshape([n_particles, len(self.list_of_teachers), self.n_days_in_week, self.n_classes_per_day])
+        points += np.count_nonzero(np.sum(prof_dia_hora, axis=3) == 0, axis=(1,2)) * COEF_PROF_FREE_DAY
+
+
+        # Verificar grupos com dias livres
+        # Dá 1 ponto para cada dia livre de grupo
+        dia_hora_grupo = np.sum(x, axis=1).reshape(n_particles, self.n_days_in_week, self.n_classes_per_day, len(self.list_of_groups))
+        points += np.count_nonzero(np.sum(dia_hora_grupo, axis=2) == 0, axis=(1,2)) * COEF_GROUP_FREE_DAY
+
+
         return points
 
     def sollution_to_xlsx(self, sollution:np.ndarray):
