@@ -148,8 +148,8 @@ def excel_example(filename:str='excel_example.xlsx'):
     print(pos)
 
     s.sollution_to_xlsx(np.array(pos))
-    plot_cost_history(optmizer.cost_history)
-    plt.show()
+    # plot_cost_history(optmizer.cost_history)
+    # plt.show()
 
 def decode_example():
 
