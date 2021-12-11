@@ -140,7 +140,7 @@ def excel_example(filename:str='excel_example.xlsx'):
 
     start = time.time()
     optmizer = ps.discrete.BinaryPSO(n_particles, s.dimensions, options=options)
-    cost, pos = optmizer.optimize(s.evaluate, iters=10000, n_processes=n_threads)
+    cost, pos = optmizer.optimize(s.evaluate, iters=10000, n_processes=n_threads, verbose=False)
     stop = time.time()
     print('Duration: ', stop-start, ' seconds')
 
