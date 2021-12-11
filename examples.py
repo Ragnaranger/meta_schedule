@@ -121,37 +121,46 @@ def example2():
     plt.show()
 
 def excel_example(filename:str='excel_example.xlsx'):
-  s = Schedule.from_xlsx(filename)
-  
-  n_particles = 40
-  n_threads = 1
-  s.compile(n_particles, n_threads)
+    s = Schedule.from_xlsx(filename)
 
-  options = {'c1': 100000000.0, 'c2': 0.6, 'w':0.9, 'k':4, 'p':1}
+    n_particles = 40
+    n_threads = 1
+    s.compile(n_particles, n_threads)
 
-  start = time.time()
-  optmizer = ps.discrete.BinaryPSO(n_particles, s.dimensions, options=options)
-  cost, pos = optmizer.optimize(s.evaluate, iters=10000, n_processes=n_threads)
-  stop = time.time()
-  print('Duration: ', stop-start, ' seconds')
+    # options = {'c1': 100000000.0, 'c2': 0.6, 'w':0.9, 'k':4, 'p':1} # original
+    options = {'c1': 100000000.0, 'c2': 0.6, 'w':0.9, 'k':8, 'p':1}   # melhor
+    # options = {'c1': 100000000000000.0, 'c2': 0.8, 'w':0.9, 'k':8, 'p':1}
+    # c1: Cognitive Parameter
+    # c2: Social Parameter
+    # w : Inertia parameter
+    # k : Number of neighbors considered
 
-  print('Sollution:')
-  print(pos)
+    # p : Minowski p-norm used: 1 is the sum-of-absolute values (or L1 distance) 
+    #      while 2 is the Euclidean (or L2) distance
 
-  s.sollution_to_xlsx(np.array(pos))
-  plot_cost_history(optmizer.cost_history)
-  plt.show()
+    start = time.time()
+    optmizer = ps.discrete.BinaryPSO(n_particles, s.dimensions, options=options)
+    cost, pos = optmizer.optimize(s.evaluate, iters=10000, n_processes=n_threads)
+    stop = time.time()
+    print('Duration: ', stop-start, ' seconds')
+
+    print('Sollution:')
+    print(pos)
+
+    s.sollution_to_xlsx(np.array(pos))
+    plot_cost_history(optmizer.cost_history)
+    plt.show()
 
 def decode_example():
 
-  s = Schedule.from_xlsx('excel_example.xlsx')
-  
-  n_particles = 40
-  n_threads = 1
-  s.compile(n_particles, n_threads)
+    s = Schedule.from_xlsx('excel_example.xlsx')
 
-  # Pulando a parte de cálculo de solução
-  sollution = \
+    n_particles = 40
+    n_threads = 1
+    s.compile(n_particles, n_threads)
+
+    # Pulando a parte de cálculo de solução
+    sollution = \
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
  0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
  0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -167,9 +176,9 @@ def decode_example():
  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,]
 
 
-  # print(s.decodify(np.array(sollution)))
-  s.sollution_to_xlsx(np.array(sollution))
+    # print(s.decodify(np.array(sollution)))
+    s.sollution_to_xlsx(np.array(sollution))
 
 if __name__ == '__main__':
 
-  excel_example()
+    excel_example()
