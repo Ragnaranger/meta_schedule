@@ -140,12 +140,13 @@ def excel_example(filename:str='excel_example.xlsx'):
 
     start = time.time()
     optmizer = ps.discrete.BinaryPSO(n_particles, s.dimensions, options=options)
-    cost, pos = optmizer.optimize(s.evaluate, iters=10000, n_processes=n_threads, verbose=False)
+    cost, pos = optmizer.optimize(s.evaluate, iters=12000, n_processes=n_threads, verbose=False)
     stop = time.time()
     print('Duration: ', stop-start, ' seconds')
 
     print('Sollution:')
     print(pos)
+    print('Score: ', cost)
 
     s.sollution_to_xlsx(np.array(pos))
     # plot_cost_history(optmizer.cost_history)

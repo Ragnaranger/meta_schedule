@@ -23,9 +23,9 @@ def write_results():
 
 if __name__ == '__main__':
     st.write(""" # METASCHEDULE """)
-    example_file = open('excel_example.xlsx', 'r')
+    example_file = open('excel_example.xlsx', 'rb')
 
-    st.download_button("Modelo de arquivo para ser utilizado", ".xlsx", "excel_example.xlsx")
+    st.download_button("Modelo de arquivo para ser utilizado", example_file, "excel_example.xlsx")
     file = st.file_uploader("Selecione o arquivo a ser utilizado")
     if file is not None:
         with open('./testfile.xlsx', 'wb') as f:
