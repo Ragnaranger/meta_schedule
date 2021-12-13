@@ -46,7 +46,8 @@ class Schedule:
     @classmethod
     def from_xlsx(cls, filename:str):
         x_file = openpyxl.load_workbook(filename)
-        sheet = x_file.active
+        sheet = x_file[x_file.sheetnames[0]]
+        # sheet = x_file.active
         n_dias = int(sheet['A2'].value)
         n_horas = int(sheet['B2'].value)
 
